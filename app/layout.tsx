@@ -2,22 +2,28 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 
-const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const geist = Geist({ variable: "--font-sans", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ランチマッチング",
+  title: "Lunch Matching",
   description: "社内ランチマッチングアプリ",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full bg-orange-50 text-gray-800" style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}>
-        <header className="bg-white border-b border-orange-100 px-4 py-3 flex items-center justify-between">
-          <a href="/" className="text-lg font-bold text-orange-500">🍱 ランチマッチング</a>
-          <a href="/status" className="text-sm text-orange-400 hover:text-orange-600">今週の状況</a>
+    <html lang="ja" className={geist.variable}>
+      <body className="min-h-screen bg-background text-foreground">
+        <header className="border-b border-border bg-background">
+          <div className="max-w-xl mx-auto px-4 h-14 flex items-center justify-between">
+            <a href="/" className="text-sm font-semibold tracking-tight">
+              Lunch Matching
+            </a>
+            <a href="/status" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              今週の状況
+            </a>
+          </div>
         </header>
-        <main className="flex-1 max-w-xl mx-auto w-full px-4 py-8">
+        <main className="max-w-xl mx-auto px-4 py-8">
           {children}
         </main>
       </body>

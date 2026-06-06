@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 type ToastProps = {
   message: string;
@@ -16,9 +17,13 @@ export function Toast({ message, type = "success", onClose }: ToastProps) {
 
   return (
     <div
-      className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium z-50 transition-all ${
-        type === "success" ? "bg-emerald-500" : "bg-red-500"
-      }`}
+      className={cn(
+        "fixed bottom-6 left-1/2 -translate-x-1/2 z-50",
+        "px-4 py-2.5 rounded-lg text-sm font-medium shadow-lg border",
+        type === "success"
+          ? "bg-foreground text-background border-foreground"
+          : "bg-destructive text-white border-destructive"
+      )}
     >
       {message}
     </div>
@@ -27,12 +32,7 @@ export function Toast({ message, type = "success", onClose }: ToastProps) {
 
 export function useToast() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-
-  const show = (message: string, type: "success" | "error" = "success") => {
-    setToast({ message, type });
-  };
-
+  const show = (message: string, type: "success" | "error" = "success") => setToast({ message, type });
   const hide = () => setToast(null);
-
   return { toast, show, hide };
 }

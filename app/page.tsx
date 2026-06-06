@@ -4,6 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Toast, useToast } from "./components/Toast";
 import { getThisWeekLunchDates, toDateString } from "@/lib/dates";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 const DAY_KEYS = ["月", "火", "水", "木", "金"];
 
@@ -27,7 +32,6 @@ export default function HomePage() {
       localStorage.setItem("anonymous_id", id);
     }
     setAnonymousId(id);
-
     const stored = localStorage.getItem("nickname");
     if (stored) setNickname(stored);
   }, []);
@@ -49,7 +53,6 @@ export default function HomePage() {
   const saveNickname = async () => {
     const trimmed = nicknameInput.trim();
     if (!trimmed) return show("ニックネームを入力してください", "error");
-
     setLoading(true);
     const res = await fetch("/api/participants", {
       method: "POST",
@@ -57,9 +60,7 @@ export default function HomePage() {
       body: JSON.stringify({ anonymous_id: anonymousId, nickname: trimmed }),
     });
     setLoading(false);
-
     if (!res.ok) return show("保存に失敗しました", "error");
-
     localStorage.setItem("nickname", trimmed);
     setNickname(trimmed);
     setNicknameInput("");
@@ -72,7 +73,6 @@ export default function HomePage() {
     const isRegistered = registeredDates.includes(date);
     setLoading(true);
 
-    // ニックネームなしで初めて登録する場合、参加者レコードを作成
     if (!isRegistered && !nickname) {
       await fetch("/api/participants", {
         method: "POST",
@@ -92,13 +92,12 @@ export default function HomePage() {
       const body = await res.json().catch(() => ({}));
       return show(body.error ?? "処理に失敗しました", "error");
     }
-
     if (isRegistered) {
       setRegisteredDates((prev) => prev.filter((d) => d !== date));
       show("キャンセルしました");
     } else {
       setRegisteredDates((prev) => [...prev, date]);
-      show("登録しました！");
+      show("登録しました");
     }
   };
 
@@ -106,14 +105,19 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-sm p-8 mt-4">
+      <div className="mb-6">
         {nickname ? (
-          <p className="text-gray-400 text-sm mb-4">こんにちは、<span className="text-orange-500 font-medium">{nickname}</span> さん 👋</p>
+          <p className="text-sm text-muted-foreground">こんにちは、<span className="text-foreground font-medium">{nickname}</span></p>
         ) : (
-          <p className="text-gray-400 text-sm mb-4">参加したい曜日を選んでください</p>
+          <p className="text-sm text-muted-foreground">参加したい曜日を選んでください</p>
         )}
+      </div>
 
-        <div className="space-y-3 mb-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>今週のランチ</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
           {weekDates.map((date, i) => {
             const isChecked = registeredDates.includes(date);
             return (
@@ -121,83 +125,92 @@ export default function HomePage() {
                 key={date}
                 onClick={() => toggleDate(date)}
                 disabled={loading}
-                className={`w-full flex items-center justify-between px-5 py-4 rounded-xl border-2 transition ${
-                  isChecked
-                    ? "border-orange-400 bg-orange-50 text-orange-600"
-                    : "border-gray-100 bg-gray-50 text-gray-600 hover:border-orange-200"
-                }`}
+                className={cn(
+                  "w-full flex items-center justify-between px-4 min-h-[44px] py-3 transition-colors text-left",
+                  "hover:bg-muted/50 disabled:opacity-50",
+                  i !== weekDates.length - 1 && "border-b border-border",
+                  isChecked && "bg-muted/30"
+                )}
               >
-                <span className="font-semibold">
+                <span className="text-sm font-medium">
                   {DAY_KEYS[i]}曜日
-                  <span className="ml-2 text-xs text-gray-400">{date}</span>
+                  <span className="ml-2 text-xs text-muted-foreground font-normal">{date}</span>
                 </span>
-                <span className="text-xl">{isChecked ? "✅" : "⬜️"}</span>
+                <span
+                  className={cn(
+                    "w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0",
+                    isChecked
+                      ? "bg-foreground border-foreground"
+                      : "border-border bg-background"
+                  )}
+                >
+                  {isChecked && (
+                    <svg className="w-3 h-3 text-background" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </span>
               </button>
             );
           })}
-        </div>
+        </CardContent>
+      </Card>
 
-        <a
-          href="/status"
-          className="block text-center text-sm text-orange-400 hover:text-orange-600 underline"
-        >
-          今週のランチ状況を確認する →
+      <div className="mt-4 text-center">
+        <a href="/status" className="text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4">
+          今週のランチ状況を確認する
         </a>
       </div>
 
-      {/* ニックネーム（任意） */}
-      <div className="bg-white rounded-2xl shadow-sm p-5 mt-4">
-        <p className="text-xs text-gray-400 mb-3">ニックネーム（任意）</p>
+      <Separator className="my-6" />
 
-        {!editingNickname && !nickname && (
-          <button
-            onClick={() => setEditingNickname(true)}
-            className="text-sm text-orange-400 hover:text-orange-600 underline"
-          >
-            + ニックネームを設定する
-          </button>
-        )}
-
-        {!editingNickname && nickname && (
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">{nickname}</span>
-            <button
-              onClick={() => { setNicknameInput(nickname); setEditingNickname(true); }}
-              className="text-xs text-gray-400 hover:text-orange-400 underline"
-            >
-              変更
-            </button>
-          </div>
-        )}
-
-        {editingNickname && (
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={nicknameInput}
-              onChange={(e) => setNicknameInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && saveNickname()}
-              placeholder="例：田中涼子、りょうこ"
-              maxLength={20}
-              autoFocus
-              className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-            />
-            <button
-              onClick={saveNickname}
-              disabled={loading || !nicknameInput.trim()}
-              className="bg-orange-500 text-white text-sm px-4 py-2 rounded-xl hover:bg-orange-600 disabled:opacity-50 transition"
-            >
-              保存
-            </button>
-            <button
-              onClick={() => { setEditingNickname(false); setNicknameInput(""); }}
-              className="text-sm text-gray-400 hover:text-gray-600 px-2"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-      </div>
+      <Card size="sm">
+        <CardHeader>
+          <CardTitle className="text-sm text-muted-foreground font-normal">ニックネーム（任意）</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!editingNickname && !nickname && (
+            <Button variant="outline" size="sm" onClick={() => setEditingNickname(true)}>
+              設定する
+            </Button>
+          )}
+          {!editingNickname && nickname && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">{nickname}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setNicknameInput(nickname); setEditingNickname(true); }}
+              >
+                変更
+              </Button>
+            </div>
+          )}
+          {editingNickname && (
+            <div className="flex gap-2">
+              <Input
+                value={nicknameInput}
+                onChange={(e) => setNicknameInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && saveNickname()}
+                placeholder="例：田中涼子"
+                maxLength={20}
+                autoFocus
+                className="h-8 text-sm"
+              />
+              <Button size="sm" onClick={saveNickname} disabled={loading || !nicknameInput.trim()}>
+                保存
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => { setEditingNickname(false); setNicknameInput(""); }}
+              >
+                キャンセル
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={hide} />}
     </>

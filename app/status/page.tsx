@@ -4,10 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 import { Toast, useToast } from "../components/Toast";
 import { isCancellable, isToday } from "@/lib/dates";
 import { DayStatus, LunchGroup } from "@/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export default function StatusPage() {
   const [anonymousId, setAnonymousId] = useState<string | null>(null);
-  const [nickname, setNickname] = useState<string>("");
   const [dayStatuses, setDayStatuses] = useState<DayStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState<string | null>(null);
@@ -15,9 +18,7 @@ export default function StatusPage() {
 
   useEffect(() => {
     const id = localStorage.getItem("anonymous_id");
-    const name = localStorage.getItem("nickname");
     setAnonymousId(id);
-    setNickname(name ?? "");
   }, []);
 
   const fetchStatus = useCallback(async () => {
@@ -36,13 +37,11 @@ export default function StatusPage() {
   const handleCancel = async (date: string) => {
     if (!anonymousId) return;
     setCancelling(date);
-
     const res = await fetch("/api/registrations", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ anonymous_id: anonymousId, lunch_date: date }),
     });
-
     setCancelling(null);
     if (!res.ok) return show("キャンセルに失敗しました", "error");
     show("辞退しました");
@@ -55,102 +54,98 @@ export default function StatusPage() {
   };
 
   if (loading) {
-    return <div className="text-center text-gray-400 mt-16">読み込み中...</div>;
+    return <p className="text-sm text-muted-foreground mt-8 text-center">読み込み中...</p>;
   }
 
   return (
     <>
-      <h2 className="text-xl font-bold text-gray-700 mb-1">今週のランチ状況</h2>
-      <p className="text-sm text-gray-400 mb-6">月〜金の参加状況とグループを確認できます</p>
+      <div className="mb-6">
+        <h1 className="text-base font-semibold">今週のランチ状況</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">月〜金の参加状況とグループを確認できます</p>
+      </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {dayStatuses.map((status) => {
           const myGroup = myGroupFor(status);
           const today = isToday(status.date);
           const cancellable = isCancellable(status.date);
 
           return (
-            <div
-              key={status.date}
-              className={`bg-white rounded-2xl shadow-sm p-5 ${
-                status.isRegistered ? "border-2 border-orange-200" : ""
-              }`}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <span className="font-bold text-lg text-gray-700">{status.dayLabel}曜日</span>
-                  <span className="ml-2 text-sm text-gray-400">{status.date}</span>
-                  {today && (
-                    <span className="ml-2 text-xs bg-orange-100 text-orange-500 px-2 py-0.5 rounded-full font-medium">
-                      今日
-                    </span>
+            <Card key={status.date} className={cn(status.isRegistered && "ring-foreground/20")}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <span>{status.dayLabel}曜日</span>
+                    <span className="text-xs font-normal text-muted-foreground">{status.date}</span>
+                    {today && <Badge variant="secondary">今日</Badge>}
+                  </CardTitle>
+                  {status.isRegistered && (
+                    <Badge variant="outline">参加予定</Badge>
                   )}
                 </div>
-                {status.isRegistered && (
-                  <span className="text-xs bg-emerald-100 text-emerald-600 px-2 py-1 rounded-full font-medium">
-                    参加予定
-                  </span>
-                )}
-              </div>
-
-              {!status.isConfirmed ? (
-                <p className="text-sm text-gray-500">
-                  {status.participantCount > 0
-                    ? `${status.participantCount}名が参加予定`
-                    : "まだ登録者がいません"}
-                  {" — グループは前日20時に確定します"}
-                </p>
-              ) : status.groups.length === 0 ? (
-                <p className="text-sm text-gray-400">😔 参加者不足のため中止になりました</p>
-              ) : (
-                <div className="space-y-2">
-                  {status.groups.map((group, i) => {
-                    const isMyGroup = myGroup?.id === group.id;
-                    return (
-                      <div
-                        key={group.id}
-                        className={`rounded-xl px-4 py-3 text-sm ${
-                          isMyGroup
-                            ? "bg-orange-50 border border-orange-200"
-                            : "bg-gray-50"
-                        }`}
-                      >
-                        <span className="font-medium text-gray-600">
-                          グループ{i + 1}
-                          {isMyGroup && (
-                            <span className="ml-2 text-orange-500 text-xs">← あなたのグループ</span>
+              </CardHeader>
+              <CardContent>
+                {!status.isConfirmed ? (
+                  <p className="text-sm text-muted-foreground">
+                    {status.participantCount > 0
+                      ? `${status.participantCount}名が参加予定 — グループは前日20時に確定します`
+                      : "登録者なし"}
+                  </p>
+                ) : status.groups.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">参加者不足のため中止になりました</p>
+                ) : (
+                  <div className="space-y-2">
+                    {status.groups.map((group, i) => {
+                      const isMyGroup = myGroup?.id === group.id;
+                      return (
+                        <div
+                          key={group.id}
+                          className={cn(
+                            "rounded-lg px-3 py-2.5 text-sm border",
+                            isMyGroup
+                              ? "bg-foreground text-background border-foreground"
+                              : "bg-muted/30 border-border"
                           )}
-                        </span>
-                        <p className="mt-1 text-gray-700">{group.nicknames.join("、")}</p>
-                      </div>
-                    );
-                  })}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className={cn("text-xs font-medium", isMyGroup ? "text-background/70" : "text-muted-foreground")}>
+                              グループ {i + 1}
+                              {isMyGroup && <span className="ml-1.5">— あなたのグループ</span>}
+                            </span>
+                          </div>
+                          <p className="mt-1">{group.nicknames.join(" / ")}</p>
+                        </div>
+                      );
+                    })}
 
-                  {myGroup && status.isRegistered && cancellable && !today && (
-                    <button
-                      onClick={() => handleCancel(status.date)}
-                      disabled={cancelling === status.date}
-                      className="mt-2 text-sm text-red-400 hover:text-red-600 underline"
-                    >
-                      {cancelling === status.date ? "処理中..." : "辞退する"}
-                    </button>
-                  )}
+                    {myGroup && status.isRegistered && cancellable && !today && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCancel(status.date)}
+                        disabled={cancelling === status.date}
+                        className="text-muted-foreground hover:text-destructive mt-1 min-h-[44px]"
+                      >
+                        {cancelling === status.date ? "処理中..." : "辞退する"}
+                      </Button>
+                    )}
 
-                  {today && (
-                    <p className="mt-2 text-sm text-orange-500 font-medium">
-                      🍱 今日のランチ、楽しんできてください！
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
+                    {today && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        今日のランチ、楽しんできてください。
+                      </p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           );
         })}
       </div>
 
       <div className="mt-6 text-center">
-        <a href="/" className="text-sm text-orange-400 hover:text-orange-600 underline">
-          ← 参加登録に戻る
+        <a href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4">
+          参加登録に戻る
         </a>
       </div>
 
