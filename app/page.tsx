@@ -15,7 +15,7 @@ const DAY_KEYS = ["月", "火", "水", "木", "金"];
 const PREVIEW_CONFIRMED = true;
 
 const DUMMY_GROUPS = [
-  { id: "g1", lunch_date: "", member_ids: ["self"], nicknames: ["田中", "鈴木", "あなた"], status: "confirmed" as const, confirmed_at: null, notified_at: null },
+  { id: "g1", lunch_date: "", member_ids: ["u1", "u2", "self"], nicknames: ["田中", "鈴木", "あなた"], status: "confirmed" as const, confirmed_at: null, notified_at: null },
   { id: "g2", lunch_date: "", member_ids: ["u2"], nicknames: ["山田", "伊藤", "渡辺"], status: "confirmed" as const, confirmed_at: null, notified_at: null },
   { id: "g3", lunch_date: "", member_ids: ["u3"], nicknames: ["小林", "加藤"], status: "confirmed" as const, confirmed_at: null, notified_at: null },
 ];
@@ -198,9 +198,6 @@ export default function HomePage() {
   const isLunchWindow = PREVIEW_CONFIRMED || (jstHour >= 9 && jstHour < 14);
   const isGroupConfirmedNow = PREVIEW_CONFIRMED || !!todayStatus?.isConfirmed;
   const activeGroups = PREVIEW_CONFIRMED ? DUMMY_GROUPS : (todayStatus?.groups ?? []);
-  const myGroup = PREVIEW_CONFIRMED
-    ? DUMMY_GROUPS.find((g) => g.member_ids.includes("self")) ?? null
-    : (todayStatus?.groups?.find((g) => g.member_ids.includes(anonymousId)) ?? null);
   const showLunchBanner = isLunchWindow && isGroupConfirmedNow;
 
   return (
@@ -266,32 +263,28 @@ export default function HomePage() {
               <>
               <div className="flex gap-6 flex-wrap">
                 {activeGroups.map((group, idx) => {
-                  const isMyGroup = group.id === myGroup?.id;
                   const leaderName = group.nicknames[0];
                   return (
                     <div key={group.id} className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-foreground mb-1.5">
-                        {isMyGroup ? "あなたのグループ" : `グループ ${idx + 1}`}
+                        {`グループ${"ABCDEFG"[idx]}`}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
-                        {group.nicknames.map((name) => {
-                          const isSelf = isMyGroup && name === (nickname || "Guest");
+                        {group.nicknames.map((name, ni) => {
+                          const memberId = group.member_ids[ni];
+                          const isSelf = PREVIEW_CONFIRMED
+                            ? memberId === "self"
+                            : memberId === anonymousId;
                           const isLeader = name === leaderName;
                           return (
-                            <span key={name} className="flex items-center gap-1">
-                              <span className={cn(
-                                "text-sm px-3 py-1.5 rounded-full font-medium",
-                                isSelf
-                                  ? "bg-emerald-700 text-white font-bold"
-                                  : "bg-white border border-emerald-200 text-emerald-900"
-                              )}>
-                                {isLeader && <span className="mr-1">🚩</span>}{name}
-                              </span>
-                              {isSelf && (
-                                <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ backgroundColor: "#064e3b", color: "#ffffff" }}>
-                                  あなた
-                                </span>
-                              )}
+                            <span key={name} className={cn(
+                              "text-sm px-3 py-1.5 rounded-full font-medium",
+                              isSelf
+                                ? "bg-emerald-100 border border-emerald-600 text-emerald-800 font-bold"
+                                : "bg-white border border-gray-200 text-foreground"
+                            )}>
+                              {isLeader && <span className="mr-1">🚩</span>}
+                              {isSelf ? (nickname || "Guest") : name}
                             </span>
                           );
                         })}
