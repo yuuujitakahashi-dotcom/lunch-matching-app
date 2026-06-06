@@ -1,0 +1,20 @@
+{
+  "crons": [
+    {
+      "path": "/api/match",
+      "schedule": "0 11 * * 0-4"
+    },
+    {
+      "path": "/api/notify?type=confirmed",
+      "schedule": "0 11 * * 0-4"
+    },
+    {
+      "path": "/api/notify?type=reminder_morning",
+      "schedule": "0 0 * * 1-5"
+    },
+    {
+      "path": "/api/notify?type=reminder_lunch",
+      "schedule": "30 2 * * 1-5"
+    }
+  ]
+}
