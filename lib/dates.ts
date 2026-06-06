@@ -9,7 +9,7 @@ const DAY_LABELS: Record<number, string> = {
 export function getThisWeekLunchDates(): Date[] {
   const now = new Date();
   const jstNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-  const day = jstNow.getDay(); // 0=Sun, 1=Mon...
+  const day = jstNow.getDay();
   const monday = new Date(jstNow);
   monday.setDate(jstNow.getDate() - (day === 0 ? 6 : day - 1));
   monday.setHours(0, 0, 0, 0);
@@ -18,6 +18,22 @@ export function getThisWeekLunchDates(): Date[] {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
     return d;
+  });
+}
+
+export function getNextWeekLunchDates(): Date[] {
+  return getThisWeekLunchDates().map((d) => {
+    const next = new Date(d);
+    next.setDate(next.getDate() + 7);
+    return next;
+  });
+}
+
+export function getWeekAfterNextLunchDates(): Date[] {
+  return getThisWeekLunchDates().map((d) => {
+    const next = new Date(d);
+    next.setDate(next.getDate() + 14);
+    return next;
   });
 }
 

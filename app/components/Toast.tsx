@@ -11,21 +11,21 @@ type ToastProps = {
 
 export function Toast({ message, type = "success", onClose }: ToastProps) {
   useEffect(() => {
-    const timer = setTimeout(onClose, 3000);
+    const timer = setTimeout(onClose, 7000);
     return () => clearTimeout(timer);
   }, [onClose]);
 
   return (
     <div
       className={cn(
-        "fixed bottom-6 left-1/2 -translate-x-1/2 z-50",
+        "fixed top-6 left-1/2 -translate-x-1/2 z-50",
         "px-4 py-2.5 rounded-lg text-sm font-medium shadow-lg border",
         type === "success"
           ? "bg-foreground text-background border-foreground"
           : "bg-destructive text-white border-destructive"
       )}
     >
-      {message}
+      <span className="whitespace-pre-line">{message}</span>
     </div>
   );
 }

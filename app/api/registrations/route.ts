@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabase";
-import { getThisWeekLunchDates, toDateString } from "@/lib/dates";
+import { getThisWeekLunchDates, getNextWeekLunchDates, getWeekAfterNextLunchDates, toDateString } from "@/lib/dates";
 
 export async function POST(req: NextRequest) {
   const { anonymous_id, lunch_date } = await req.json();
@@ -9,7 +9,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "anonymous_id and lunch_date are required" }, { status: 400 });
   }
 
-  const validDates = getThisWeekLunchDates().map(toDateString);
+  const validDates = [
+    ...getThisWeekLunchDates(),
+    ...getNextWeekLunchDates(),
+    ...getWeekAfterNextLunchDates(),
+  ].map(toDateString);
   if (!validDates.includes(lunch_date)) {
     return NextResponse.json({ error: "Invalid lunch_date" }, { status: 400 });
   }
