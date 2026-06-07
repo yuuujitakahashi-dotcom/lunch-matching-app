@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
       .map((g, i) => `*グループ${i + 1}*: ${g.nicknames.join("、")}`)
       .join("\n");
 
-    const text = `🍱 *明日のランチグループが決まりました！*\n\n📅 ${targetDate}（${dayLabel}）のランチ\n\n${groupText}\n\nサイトで確認 → ${siteUrl}/status\n\n※ 都合が悪くなった場合は当日9時までサイトからキャンセルできます`;
+    const text = `🍱 *明日のランチグループが決まりました！*\n\n📅 ${targetDate}（${dayLabel}）のランチ\n\n${groupText}\n\nサイトで確認 → ${siteUrl}/status\n\n※ 都合が悪くなった場合は当日10:00までサイトからキャンセルできます`;
     await sendSlack(text);
 
     await db
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Not a lunch day" });
     }
 
-    const text = `☀️ *今日のランチ、お忘れなく！*\n\n📅 今日 ${today}（${dayLabel}）12:00〜\n\nキャンセル締め切りは9時です → ${siteUrl}/status`;
+    const text = `☀️ *今日のランチ、お忘れなく！*\n\n📅 今日 ${today}（${dayLabel}）12:00〜\n\nキャンセル締め切りは10:00です → ${siteUrl}/status`;
     await sendSlack(text);
     return NextResponse.json({ message: "Morning reminder sent" });
   }

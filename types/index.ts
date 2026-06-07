@@ -26,11 +26,21 @@ export type LunchGroup = {
   notified_at: string | null;
 };
 
+export type ChatMessage = {
+  id: string;
+  lunch_group_id: string;
+  anonymous_id: string;
+  nickname: string;
+  message: string;
+  created_at: string;
+};
+
 export type DayStatus = {
   date: string;
   dayLabel: string;
   participantCount: number;
   isRegistered: boolean;
+  names: string[];
   groups: LunchGroup[];
   isConfirmed: boolean;
 };

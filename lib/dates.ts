@@ -62,7 +62,7 @@ export function isGroupConfirmed(lunchDate: string): boolean {
 
 export function isCancellable(lunchDate: string): boolean {
   const jstNow = getJstNow();
-  const deadline = new Date(lunchDate + "T09:00:00+09:00");
+  const deadline = new Date(lunchDate + "T10:00:00+09:00");
   return jstNow < deadline;
 }
 
@@ -70,4 +70,10 @@ export function isToday(lunchDate: string): boolean {
   const jstNow = getJstNow();
   const today = toDateString(jstNow);
   return lunchDate === today;
+}
+
+export function namesVisible(lunchDate: string): boolean {
+  const jstNow = getJstNow();
+  const today = toDateString(jstNow);
+  return lunchDate < today || (lunchDate === today && jstNow.getHours() >= 10);
 }
